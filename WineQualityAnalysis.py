@@ -3,11 +3,14 @@ from mrjob.job import MRJob
 class WineQualityAnalysis(MRJob):
 
     def mapper(self, _, line):
+        # Skip the header row (it contains the word "alcohol")
+        if "alcohol" in line.lower():
+            return
+
         parts = line.split(';')
-        if parts[0] != "fixed acidity":  # skip header
-            quality = parts[11]
-            alcohol = float(parts[10])
-            yield quality, alcohol
+        quality = parts[11].replace('"', '')
+        alcohol = float(parts[10].replace('"', ''))
+        yield quality, alcohol
 
     def reducer(self, quality, alcohol_values):
         values = list(alcohol_values)
@@ -16,3 +19,4 @@ class WineQualityAnalysis(MRJob):
 
 if __name__ == '__main__':
     WineQualityAnalysis.run()
+
